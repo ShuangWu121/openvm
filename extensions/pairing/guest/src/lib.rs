@@ -19,14 +19,14 @@ impl PairingBaseFunct7 {
 extern crate alloc;
 extern crate self as openvm_ecc;
 
-#[cfg(feature = "halo2curves")]
+
 pub use halo2curves_axiom as halo2curves;
 pub use openvm_algebra_guest as algebra;
 
 /// Implementation of this library's traits on halo2curves types.
 /// Used for testing and also VM runtime execution.
 /// These should **only** be importable on a host machine.
-#[cfg(feature = "halo2curves")]
+
 pub mod halo2curves_shims;
 
 /// Traits for optimal Ate pairing check using intrinsic functions.
