@@ -15,21 +15,14 @@ use openvm_pairing_guest::{
         MultiMillerLoop, PairingCheck, PairingCheckError, PairingIntrinsics, UnevaluatedLine,
     },
 };
-#[cfg(all(feature = "halo2curves", not(target_os = "zkvm")))]
+#[cfg(feature = "halo2curves")]
 use openvm_pairing_guest::{
     halo2curves_shims::bls12_381::Bls12_381 as Halo2CurvesBls12_381, pairing::FinalExp,
 };
-#[cfg(target_os = "zkvm")]
-use {
-    core::mem::MaybeUninit,
-    openvm_pairing_guest::{PairingBaseFunct7, OPCODE, PAIRING_FUNCT3},
-    openvm_platform::custom_insn_r,
-    openvm_rv32im_guest,
-    openvm_rv32im_guest::hint_buffer_u32,
-};
+
 
 use super::{Bls12_381, Fp, Fp12, Fp2};
-#[cfg(all(feature = "halo2curves", not(target_os = "zkvm")))]
+#[cfg(feature = "halo2curves")]
 use crate::bls12_381::utils::{
     convert_bls12381_fp2_to_halo2_fq2, convert_bls12381_fp_to_halo2_fq,
     convert_bls12381_halo2_fq12_to_fp12,
@@ -276,27 +269,6 @@ impl PairingCheck for Bls12_381 {
                 let c = convert_bls12381_halo2_fq12_to_fp12(c_fq12);
                 let s = convert_bls12381_halo2_fq12_to_fp12(s_fq12);
                 (c, s)
-            }
-        }
-        #[cfg(target_os = "zkvm")]
-        {
-            let hint = MaybeUninit::<(Fp12, Fp12)>::uninit();
-            // We do not rely on the slice P's memory layout since rust does not guarantee it across
-            // compiler versions.
-            let p_fat_ptr = (P.as_ptr() as u32, P.len() as u32);
-            let q_fat_ptr = (Q.as_ptr() as u32, Q.len() as u32);
-            unsafe {
-                custom_insn_r!(
-                    opcode = OPCODE,
-                    funct3 = PAIRING_FUNCT3,
-                    funct7 = ((Bls12_381::PAIRING_IDX as u8) * PairingBaseFunct7::PAIRING_MAX_KINDS + PairingBaseFunct7::HintFinalExp as u8),
-                    rd = Const "x0",
-                    rs1 = In &p_fat_ptr,
-                    rs2 = In &q_fat_ptr
-                );
-                let ptr = hint.as_ptr() as *const u8;
-                hint_buffer_u32!(ptr, (48 * 12 * 2) / 4);
-                hint.assume_init()
             }
         }
     }
