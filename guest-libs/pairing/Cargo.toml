@@ -24,7 +24,7 @@ openvm-rv32im-guest = { workspace = true }
 openvm-pairing-guest = { workspace = true }
 
 # Used for `halo2curves` feature
-halo2curves-axiom = { workspace = true, optional = true }
+halo2curves-axiom = { workspace = true, optional = true ,default-features = false}
 group = "0.13.0"
 
 [target.'cfg(not(target_os = "zkvm"))'.dependencies]
@@ -52,7 +52,7 @@ eyre.workspace = true
 rand.workspace = true
 num-bigint.workspace = true
 num-traits.workspace = true
-halo2curves-axiom = { workspace = true }
+halo2curves-axiom = { workspace = true,default-features = false }
 
 [features]
 default = []
